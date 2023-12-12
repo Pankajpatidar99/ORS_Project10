@@ -234,26 +234,24 @@ public abstract class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends B
 			return res;
 		}
 
+		T dto = (T) form.getDto();
+
+		T existDto = (T) baseService.findByUniqueKey(dto.getUniqueKey(), dto.getUniqueValue(), userContext);
+
+		if (existDto != null && dto.getId() != existDto.getId()) {
+			System.err.println("business validation");
+			res.addMessage(dto.getLabel() + " already exist");
+			res.setSuccess(false);
+			res.addData(dto.getId());
+			return res;
+		}
 		try {
-			T dto = (T) form.getDto();
-			System.out.println("237----------->" + dto);
 			if (dto.getId() != null && dto.getId() > 0) {
 				baseService.update(dto, userContext);
 			} else {
-				System.out.println("before calling add of baseservice");
-				if (dto.getUniqueKey() != null && !dto.getUniqueKey().equals("")) {
-					System.out.println("243----------->" + dto);
-					T existDto = (T) baseService.findByUniqueKey(dto.getUniqueKey(), dto.getUniqueValue(), userContext);
-					if (existDto != null) {
-						System.out.println("247----------->" + existDto);
-						res.addMessage(dto.getLabel() + " already exist");
-						res.setSuccess(false);
-						return res;
-					}
-				}
-
 				baseService.add(dto, userContext);
 			}
+		 	res.setSuccess(true);
 			res.addData(dto.getId());
 		} catch (Exception e) {
 			res.setSuccess(false);
@@ -262,7 +260,6 @@ public abstract class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends B
 		}
 		return res;
 	}
-
 	/**
 	 * Gets input error messages and put into REST response
 	 * 
